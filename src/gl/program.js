@@ -19,7 +19,7 @@ function ProgramManager(vs, fs,gl){
         // 返回程序对象
         return program;
     }else{
-        
+        // console.log(gl.getProgramInfoLog(program))
         // 如果失败，弹出错误信息
         alert(gl.getProgramInfoLog(program));
     }

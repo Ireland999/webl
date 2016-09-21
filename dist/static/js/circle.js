@@ -1,4 +1,28 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+// IBO的生成函数 
+"use strict";
+
+exports.__esModule = true;
+function create_ibo(data, gl) {
+  // 生成缓存对象 
+  var ibo = gl.createBuffer();
+
+  // 绑定缓存 
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+
+  // 向缓存中写入数据 
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW);
+
+  // 将缓存的绑定无效化 
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+  // 返回生成的IBO 
+  return ibo;
+}
+exports["default"] = create_ibo;
+module.exports = exports["default"];
+
+},{}],2:[function(require,module,exports){
 // 生成VBO的函数
 "use strict";
 
@@ -22,7 +46,7 @@ function create_vbo(data, gl) {
 exports["default"] = create_vbo;
 module.exports = exports["default"];
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 // 程序对象的生成和着色器连接的函数
 "use strict";
 
@@ -55,7 +79,7 @@ function ProgramManager(vs, fs, gl) {
 exports["default"] = ProgramManager;
 module.exports = exports["default"];
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 // 绑定VBO相关的函数 
 "use strict";
 
@@ -76,7 +100,7 @@ function set_attribute(vbo, attL, attS, gl) {
 exports["default"] = set_attribute;
 module.exports = exports["default"];
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -123,7 +147,7 @@ function create_shader(id, gl) {
 exports['default'] = create_shader;
 module.exports = exports['default'];
 
-},{"../shader/fragment.js":6,"../shader/vertex.js":7}],5:[function(require,module,exports){
+},{"../shader/fragment.js":7,"../shader/vertex.js":8}],6:[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -148,109 +172,144 @@ var _glSetAttributeJs = require('../gl/setAttribute.js');
 
 var _glSetAttributeJs2 = _interopRequireDefault(_glSetAttributeJs);
 
+var _glIBOJs = require('../gl/IBO.js');
+
+var _glIBOJs2 = _interopRequireDefault(_glIBOJs);
+
 window.onload = init;
 function init() {
-        console.log('init');
-        // canvas对象获取
-        var c = document.getElementById('canvas');
-        c.width = 300;
-        c.height = 300;
+    console.log('init');
+    // canvas对象获取
+    var c = document.getElementById('canvas');
+    c.width = 300;
+    c.height = 300;
 
-        // webgl的context获取
-        var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
-        // 顶点着色器和片段着色器的生成
-        var v_shader = _glShader2['default']('vs', gl);
-        var f_shader = _glShader2['default']('fs', gl);
+    // webgl的context获取
+    var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+    // 顶点着色器和片段着色器的生成
+    var v_shader = _glShader2['default']('vs', gl);
+    var f_shader = _glShader2['default']('fs', gl);
 
-        // 程序对象的生成和连接
-        var prg = _glProgramJs2['default'](v_shader, f_shader, gl);
+    // 程序对象的生成和连接
+    var prg = _glProgramJs2['default'](v_shader, f_shader, gl);
 
-        // attributeLocation的获取 
-        var attLocation = new Array(2);
-        attLocation[0] = gl.getAttribLocation(prg, 'position');
-        attLocation[1] = gl.getAttribLocation(prg, 'color');
+    // attributeLocation的获取 
+    var attLocation = new Array(2);
+    attLocation[0] = gl.getAttribLocation(prg, 'position');
+    attLocation[1] = gl.getAttribLocation(prg, 'color');
 
-        // 将元素数attribute保存到数组中 
-        var attStride = new Array(2);
-        attStride[0] = 3;
-        attStride[1] = 4;
+    // 将元素数attribute保存到数组中 
+    var attStride = new Array(2);
+    attStride[0] = 3;
+    attStride[1] = 4;
+    var torusData = torus(32, 32, 5.0, 0.0);
+    var position = torusData[0];
+    var color = torusData[1];
+    var index = torusData[2];
 
-        // 保存顶点的位置情报的数组 
-        var vertex_position = [0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0];
+    // 生成VBO 
+    var position_vbo = _glVBOJs2['default'](position, gl);
+    var color_vbo = _glVBOJs2['default'](color, gl);
+    // 将VBO进行绑定并添加 
+    _glSetAttributeJs2['default']([position_vbo, color_vbo], attLocation, attStride, gl);
+    var ibo = _glIBOJs2['default'](index, gl);
 
-        // 保存顶点的颜色情报的数组 
-        var vertex_color = [1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0];
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+    // uniformLocation的获取 
+    var uniLocation = gl.getUniformLocation(prg, 'mvpMatrix');
+    // 使用minMatrix.js对矩阵的相关处理 
+    // matIV对象生成 
+    var m = new _toolMinMatrixJs2['default']();
 
-        // 生成VBO 
-        var position_vbo = _glVBOJs2['default'](vertex_position, gl);
-        var color_vbo = _glVBOJs2['default'](vertex_color, gl);
-        // 将VBO进行绑定并添加 
-        _glSetAttributeJs2['default']([position_vbo, color_vbo], attLocation, attStride, gl);
-        // uniformLocation的获取 
-        var uniLocation = gl.getUniformLocation(prg, 'mvpMatrix');
-        // 使用minMatrix.js对矩阵的相关处理 
-        // matIV对象生成 
-        var m = new _toolMinMatrixJs2['default']();
+    // 各种矩阵的生成和初始化 
+    var mMatrix = m.identity(m.create());
+    var vMatrix = m.identity(m.create());
+    var pMatrix = m.identity(m.create());
+    var tmpMatrix = m.identity(m.create());
+    var mvpMatrix = m.identity(m.create());
 
-        // 各种矩阵的生成和初始化 
-        var mMatrix = m.identity(m.create());
-        var vMatrix = m.identity(m.create());
-        var pMatrix = m.identity(m.create());
-        var tmpMatrix = m.identity(m.create());
-        var mvpMatrix = m.identity(m.create());
+    m.lookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0], vMatrix);
+    m.perspective(45, c.width / c.height, 0.1, 100, pMatrix);
+    m.multiply(pMatrix, vMatrix, tmpMatrix);
 
-        // 视图变换坐标矩阵 
-        m.lookAt([0.0, 1.0, 3.0], [0, 0, 0], [0, 1, 0], vMatrix);
+    var count = 0;
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    gl.enable(gl.CULL_FACE);
 
-        // 投影坐标变换矩阵 
-        m.perspective(90, c.width / c.height, 0.1, 100, pMatrix);
-        m.multiply(pMatrix, vMatrix, tmpMatrix);
+    function draw() {
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearDepth(1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        var count = 0;
+        count++;
 
-        function draw() {
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
-                gl.clearDepth(1.0);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        var rad = count % 360 * Math.PI / 180;
 
-                count++;
+        m.identity(mMatrix);
+        var positionLocation = gl.getUniformLocation(prg, "vColor");
+        gl.uniform4f(positionLocation, 0.0, 1.0, 0.0, 1.0);
+        // m.rotate(mMatrix, rad, [0, 1, 1], mMatrix);
+        m.multiply(tmpMatrix, mMatrix, mvpMatrix);
+        gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
+        gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
 
-                var rad = count % 360 * Math.PI / 180;
+        gl.flush();
 
-                var x = Math.cos(rad);
-                var y = Math.sin(rad);
-                m.identity(mMatrix);
-                m.translate(mMatrix, [x, y + 1.0, 0.0], mMatrix);
-
-                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
-                gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
-                gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-                m.identity(mMatrix);
-                m.translate(mMatrix, [1.0, -1.0, 0.0], mMatrix);
-                m.rotate(mMatrix, rad, [0, 1, 0], mMatrix);
-
-                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
-                gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
-                gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-                var s = Math.sin(rad) + 1.0;
-                m.identity(mMatrix);
-                m.translate(mMatrix, [-1.0, -1.0, 0.0], mMatrix);
-                m.scale(mMatrix, [s, s, 0.0], mMatrix);
-
-                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
-                gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
-                gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-                gl.flush();
-
-                setTimeout(draw, 1000 / 30);
-        }
-        draw();
+        // setTimeout(draw, 1000 / 30);
+    }
+    draw();
 };
+function torus(row, column, irad, orad) {
+    var pos = new Array(),
+        col = new Array(),
+        idx = new Array();
+    for (var i = 0; i <= row; i++) {
+        var r = Math.PI * 2 / row * i;
+        var rr = Math.cos(r);
+        var ry = Math.sin(r);
+        for (var ii = 0; ii <= column; ii++) {
+            var tr = Math.PI * 2 / column * ii;
+            var tx = (rr * irad + orad) * Math.cos(tr);
+            var ty = ry * irad;
+            var tz = (rr * irad + orad) * Math.sin(tr);
+            pos.push(tx, ty, tz);
+            var tc = hsva(360 / column * ii, 1, 1, 1);
+            col.push(tc[0], tc[1], tc[2], tc[3]);
+        }
+    }
+    for (i = 0; i < row; i++) {
+        for (ii = 0; ii < column; ii++) {
+            r = (column + 1) * i + ii;
+            idx.push(r, r + column + 1, r + 1);
+            idx.push(r + column + 1, r + column + 2, r + 1);
+        }
+    }
+    return [pos, col, idx];
+}
+function hsva(h, s, v, a) {
+    if (s > 1 || v > 1 || a > 1) {
+        return;
+    }
+    var th = h % 360;
+    var i = Math.floor(th / 60);
+    var f = th / 60 - i;
+    var m = v * (1 - s);
+    var n = v * (1 - s * f);
+    var k = v * (1 - s * (1 - f));
+    var color = new Array();
+    if (!s > 0 && !s < 0) {
+        color.push(v, v, v, a);
+    } else {
+        var r = new Array(v, n, m, m, k, v);
+        var g = new Array(k, v, v, n, m, m);
+        var b = new Array(m, m, k, v, v, n);
+        color.push(r[i], g[i], b[i], a);
+    }
+    return color;
+}
 
-},{"../gl/VBO.js":1,"../gl/program.js":2,"../gl/setAttribute.js":3,"../gl/shader":4,"../tool/minMatrix.js":8}],6:[function(require,module,exports){
+},{"../gl/IBO.js":1,"../gl/VBO.js":2,"../gl/program.js":3,"../gl/setAttribute.js":4,"../gl/shader":5,"../tool/minMatrix.js":9}],7:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -260,7 +319,7 @@ function Fragment() {
 exports["default"] = Fragment;
 module.exports = exports["default"];
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -270,7 +329,7 @@ function Vertex() {
 exports["default"] = Vertex;
 module.exports = exports["default"];
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 // ------------------------------------------------------------------------------------------------
 // minMatrix.js
 // version 0.0.1
@@ -559,4 +618,4 @@ function matIV() {
 exports["default"] = matIV;
 module.exports = exports["default"];
 
-},{}]},{},[5]);
+},{}]},{},[6]);

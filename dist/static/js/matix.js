@@ -23,6 +23,53 @@ exports["default"] = create_vbo;
 module.exports = exports["default"];
 
 },{}],2:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _shaderFragmentJs = require('../shader/fragment.js');
+
+var _shaderFragmentJs2 = _interopRequireDefault(_shaderFragmentJs);
+
+var _shaderVertJs = require('../shader/vert.js');
+
+var _shaderVertJs2 = _interopRequireDefault(_shaderVertJs);
+
+// 生成着色器的函数
+function matix_shader(id, gl) {
+    var txt = '';
+    // 用来保存着色器的变量
+    var shader;
+    if (id == 'vs') {
+        shader = gl.createShader(gl.VERTEX_SHADER);
+        txt = _shaderVertJs2['default']();
+    } else if (id == 'fs') {
+        shader = gl.createShader(gl.FRAGMENT_SHADER);
+        txt = _shaderFragmentJs2['default']();
+    }
+    // 将标签中的代码分配给生成的着色器
+    gl.shaderSource(shader, txt);
+
+    // 编译着色器
+    gl.compileShader(shader);
+
+    // 判断一下着色器是否编译成功
+    if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+
+        // 编译成功，则返回着色器
+        return shader;
+    } else {
+        console.log(gl.getShaderInfoLog(shader));
+        // 编译失败，弹出错误消息
+        alert(gl.getShaderInfoLog(shader));
+    }
+}
+exports['default'] = matix_shader;
+module.exports = exports['default'];
+
+},{"../shader/fragment.js":5,"../shader/vert.js":6}],3:[function(require,module,exports){
 // 程序对象的生成和着色器连接的函数
 "use strict";
 
@@ -55,202 +102,83 @@ function ProgramManager(vs, fs, gl) {
 exports["default"] = ProgramManager;
 module.exports = exports["default"];
 
-},{}],3:[function(require,module,exports){
-// 绑定VBO相关的函数 
-"use strict";
-
-exports.__esModule = true;
-function set_attribute(vbo, attL, attS, gl) {
-    // 处理从参数中得到的数组 
-    for (var i in vbo) {
-        // 绑定缓存 
-        gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
-
-        // 将attributeLocation设置为有效 
-        gl.enableVertexAttribArray(attL[i]);
-
-        //通知并添加attributeLocation 
-        gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
-    }
-}
-exports["default"] = set_attribute;
-module.exports = exports["default"];
-
 },{}],4:[function(require,module,exports){
 'use strict';
 
-exports.__esModule = true;
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _shaderFragmentJs = require('../shader/fragment.js');
+var _glMatixShaderJs = require('../gl/matix-shader.js');
 
-var _shaderFragmentJs2 = _interopRequireDefault(_shaderFragmentJs);
-
-var _shaderVertexJs = require('../shader/vertex.js');
-
-var _shaderVertexJs2 = _interopRequireDefault(_shaderVertexJs);
-
-// 生成着色器的函数
-function create_shader(id, gl) {
-    var txt = '';
-    // 用来保存着色器的变量
-    var shader;
-    if (id == 'vs') {
-        shader = gl.createShader(gl.VERTEX_SHADER);
-        txt = _shaderVertexJs2['default']();
-    } else if (id == 'fs') {
-        shader = gl.createShader(gl.FRAGMENT_SHADER);
-        txt = _shaderFragmentJs2['default']();
-    }
-    // 将标签中的代码分配给生成的着色器
-    gl.shaderSource(shader, txt);
-
-    // 编译着色器
-    gl.compileShader(shader);
-
-    // 判断一下着色器是否编译成功
-    if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-
-        // 编译成功，则返回着色器
-        return shader;
-    } else {
-
-        // 编译失败，弹出错误消息
-        alert(gl.getShaderInfoLog(shader));
-    }
-}
-exports['default'] = create_shader;
-module.exports = exports['default'];
-
-},{"../shader/fragment.js":6,"../shader/vertex.js":7}],5:[function(require,module,exports){
-'use strict';
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _glShader = require('../gl/shader');
-
-var _glShader2 = _interopRequireDefault(_glShader);
+var _glMatixShaderJs2 = _interopRequireDefault(_glMatixShaderJs);
 
 var _glProgramJs = require('../gl/program.js');
 
 var _glProgramJs2 = _interopRequireDefault(_glProgramJs);
 
-var _toolMinMatrixJs = require('../tool/minMatrix.js');
-
-var _toolMinMatrixJs2 = _interopRequireDefault(_toolMinMatrixJs);
-
 var _glVBOJs = require('../gl/VBO.js');
 
 var _glVBOJs2 = _interopRequireDefault(_glVBOJs);
 
-var _glSetAttributeJs = require('../gl/setAttribute.js');
+var _toolMinMatrixJs = require('../tool/minMatrix.js');
 
-var _glSetAttributeJs2 = _interopRequireDefault(_glSetAttributeJs);
+var _toolMinMatrixJs2 = _interopRequireDefault(_toolMinMatrixJs);
 
-window.onload = init;
-function init() {
-        console.log('init');
-        // canvas对象获取
-        var c = document.getElementById('canvas');
-        c.width = 300;
-        c.height = 300;
+// Create the vertex data for a square to be drawn
+function createSquare(gl) {
+    var vertexBuffer;
+    vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    var verts = [.5, .5, 0.0, -.5, .5, 0.0, .5, -.5, 0.0, -.5, -.5, 0.0];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    var square = {
+        buffer: vertexBuffer,
+        vertSize: 3,
+        nVerts: 4,
+        primtype: gl.TRIANGLE_STRIP
+    };
+    return square;
+}
 
-        // webgl的context获取
-        var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
-        // 顶点着色器和片段着色器的生成
-        var v_shader = _glShader2['default']('vs', gl);
-        var f_shader = _glShader2['default']('fs', gl);
+function draw(gl, obj) {
 
-        // 程序对象的生成和连接
-        var prg = _glProgramJs2['default'](v_shader, f_shader, gl);
+    // clear the background (with black)
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
-        // attributeLocation的获取 
-        var attLocation = new Array(2);
-        attLocation[0] = gl.getAttribLocation(prg, 'position');
-        attLocation[1] = gl.getAttribLocation(prg, 'color');
+    // connect up the shader parameters: vertex position and projection/model matrices
+    // look up where the attribute is in the vertex code, we essentially get an index number
+    var vertexShader = _glMatixShaderJs2['default']('vs', gl);
+    var fragmentShader = _glMatixShaderJs2['default']('fs', gl);
+    // 程序对象的生成和连接
+    var prg = _glProgramJs2['default'](vertexShader, fragmentShader, gl);
+    var shaderProjectionMatrixUniform = gl.getUniformLocation(prg, "projectionMatrix");
+    var shaderModelViewMatrixUniform = gl.getUniformLocation(prg, "modelViewMatrix");
+    var positionLocation = gl.getUniformLocation(prg, "vColor");
+    var shaderVertexPositionAttribute = gl.getAttribLocation(prg, "vertexPos");
+    gl.enableVertexAttribArray(shaderVertexPositionAttribute);
 
-        // 将元素数attribute保存到数组中 
-        var attStride = new Array(2);
-        attStride[0] = 3;
-        attStride[1] = 4;
+    var m = new _toolMinMatrixJs2['default']();
+    // 各种矩阵的生成和初始化 
+    var projectionMatrix = m.identity(m.create());
+    var modelViewMatrix = m.identity(m.create());
+    gl.uniformMatrix4fv(shaderProjectionMatrixUniform, false, projectionMatrix);
+    gl.uniformMatrix4fv(shaderModelViewMatrixUniform, false, modelViewMatrix);
+    gl.vertexAttribPointer(shaderVertexPositionAttribute, obj.vertSize, gl.FLOAT, false, 0, 0);
+    gl.uniform4f(positionLocation, 0.0, 1.0, 0.0, 1.0);
+    // draw it  - drawArrays(Mode,first,count)
+    // start at index 0 with nVerts expected points
+    gl.drawArrays(obj.primtype, 0, obj.nVerts);
+}
 
-        // 保存顶点的位置情报的数组 
-        var vertex_position = [0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0];
-
-        // 保存顶点的颜色情报的数组 
-        var vertex_color = [1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0];
-
-        // 生成VBO 
-        var position_vbo = _glVBOJs2['default'](vertex_position, gl);
-        var color_vbo = _glVBOJs2['default'](vertex_color, gl);
-        // 将VBO进行绑定并添加 
-        _glSetAttributeJs2['default']([position_vbo, color_vbo], attLocation, attStride, gl);
-        // uniformLocation的获取 
-        var uniLocation = gl.getUniformLocation(prg, 'mvpMatrix');
-        // 使用minMatrix.js对矩阵的相关处理 
-        // matIV对象生成 
-        var m = new _toolMinMatrixJs2['default']();
-
-        // 各种矩阵的生成和初始化 
-        var mMatrix = m.identity(m.create());
-        var vMatrix = m.identity(m.create());
-        var pMatrix = m.identity(m.create());
-        var tmpMatrix = m.identity(m.create());
-        var mvpMatrix = m.identity(m.create());
-
-        // 视图变换坐标矩阵 
-        m.lookAt([0.0, 1.0, 3.0], [0, 0, 0], [0, 1, 0], vMatrix);
-
-        // 投影坐标变换矩阵 
-        m.perspective(90, c.width / c.height, 0.1, 100, pMatrix);
-        m.multiply(pMatrix, vMatrix, tmpMatrix);
-
-        var count = 0;
-
-        function draw() {
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
-                gl.clearDepth(1.0);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-                count++;
-
-                var rad = count % 360 * Math.PI / 180;
-
-                var x = Math.cos(rad);
-                var y = Math.sin(rad);
-                m.identity(mMatrix);
-                m.translate(mMatrix, [x, y + 1.0, 0.0], mMatrix);
-
-                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
-                gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
-                gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-                m.identity(mMatrix);
-                m.translate(mMatrix, [1.0, -1.0, 0.0], mMatrix);
-                m.rotate(mMatrix, rad, [0, 1, 0], mMatrix);
-
-                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
-                gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
-                gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-                var s = Math.sin(rad) + 1.0;
-                m.identity(mMatrix);
-                m.translate(mMatrix, [-1.0, -1.0, 0.0], mMatrix);
-                m.scale(mMatrix, [s, s, 0.0], mMatrix);
-
-                m.multiply(tmpMatrix, mMatrix, mvpMatrix);
-                gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
-                gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-                gl.flush();
-
-                setTimeout(draw, 1000 / 30);
-        }
-        draw();
+window.onload = function () {
+    var canvas = document.getElementById("container");
+    var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    var obj = createSquare(gl);
+    draw(gl, obj);
 };
 
-},{"../gl/VBO.js":1,"../gl/program.js":2,"../gl/setAttribute.js":3,"../gl/shader":4,"../tool/minMatrix.js":8}],6:[function(require,module,exports){
+},{"../gl/VBO.js":1,"../gl/matix-shader.js":2,"../gl/program.js":3,"../tool/minMatrix.js":7}],5:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -260,17 +188,17 @@ function Fragment() {
 exports["default"] = Fragment;
 module.exports = exports["default"];
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
-function Vertex() {
-  return "attribute vec3 position;  \n          attribute vec4 color;  \n          uniform   mat4 mvpMatrix;  \n          varying   vec4 vColor;  \n            \n          void main(void){  \n              vColor = color;  \n              gl_Position = mvpMatrix * vec4(position, 1.0);  \n          } ";
+function Vert() {
+  return "attribute vec3 vertexPos;\n      uniform mat4 modelViewMatrix;\n      uniform mat4 projectionMatrix;\n\n      void main() {\n       // returns the position\n      gl_Position = projectionMatrix * modelViewMatrix * vec4(vertexPos, 1.0);\n      }";
 }
-exports["default"] = Vertex;
+exports["default"] = Vert;
 module.exports = exports["default"];
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 // ------------------------------------------------------------------------------------------------
 // minMatrix.js
 // version 0.0.1
@@ -559,4 +487,4 @@ function matIV() {
 exports["default"] = matIV;
 module.exports = exports["default"];
 
-},{}]},{},[5]);
+},{}]},{},[4]);

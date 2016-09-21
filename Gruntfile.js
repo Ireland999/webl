@@ -13,7 +13,10 @@ module.exports = function (grunt) {
                // if the source file has an extension of es6 then
                // we change the name of the source file accordingly.
                // The result file's extension is always .js
-               "./dist/static/js/index.js": ["./src/jsportal/index.js"]
+               "./dist/static/js/index.js": ["./src/jsportal/index.js"],
+               "./dist/static/js/square.js": ["./src/jsportal/square.js"],
+               "./dist/static/js/matix.js": ["./src/jsportal/matix.js"],
+               "./dist/static/js/circle.js": ["./src/jsportal/circle.js"]
             }
          }
       },
