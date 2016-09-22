@@ -12,7 +12,7 @@ function init(){
     var c = document.getElementById('canvas');
     c.width = 300;
     c.height = 300;
-
+    // console.log(11111)
     // webgl的context获取
     var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
     // 顶点着色器和片段着色器的生成
